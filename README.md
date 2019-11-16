@@ -1,5 +1,5 @@
 # Predicting Personal Housing Affordability
-![housing](housing.jpg)
+![housing](/Images/housing.jpg)
 
 # Programming Language
 
