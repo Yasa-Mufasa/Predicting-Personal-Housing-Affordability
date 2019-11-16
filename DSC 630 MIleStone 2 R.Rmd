@@ -1,0 +1,175 @@
+---
+title: "DSC 630 Course Project MileStone 2"
+author: "Joshua Gardner"
+date: "April 6, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Importing the Data
+
+The first thing that I need to do is to import the data and start cleaning the data.
+
+```{r}
+header <- read.table('C:/Users/yasam/OneDrive/Documents/Grad School/DSC630 Predictive Analytics/Final Project/hads2013n_ASCII/thads2013n.txt', nrows=1, header=F, sep=',', stringsAsFactors=F)
+df <- read.table('C:/Users/yasam/OneDrive/Documents/Grad School/DSC630 Predictive Analytics/Final Project/hads2013n_ASCII/thads2013n.txt', skip=2, header=F, sep=',')
+colnames(df) <- unlist(header)
+head(df,5)
+ncol(df)
+```
+
+Here we can see that we have 99 variables. To pare this down, I will be selecting certain variables to include in the data that I will be looking at.
+
+```{r}
+small_df <- data.frame(head_of_household_age=df$AGE1, num_bedrooms=df$BEDRMS, year_built=df$BUILT, housing_burden=df$BURDEN, fair_market_rent=df$FMR,  growth_adj_median_income=df$GLMED, poverty_incom=df$IPOV, num_units=df$NUNITS, other_costs=df$OTHERCOST, num_residents=df$PER, num_rooms=df$ROOMS, owner_status=df$TENURE, total_wage_income=df$TOTSAL, monthly_utility_costs=df$UTILITY, vacancy_status=df$VACANCY, market_value=df$VALUE, household_income=df$ZINC2, monthly_housing_costs=df$ZSMHC)
+head(small_df,5)
+```
+
+Ok, I have the data imported and paired down to a smaller subset that I want to look at. The chosen values were selected based on my own personal inclination of what I wanted to look at. To do a more indepth investigation of all the available variables.
+
+Now that I have the data in a Data Frame, now I need to work through each variable and clean them. Let's start by looking at the histograms of the variables. I'll be using `ggplot2` to generate the histograms.
+
+```{r}
+library(ggplot2)
+```
+
+```{r, echo=F}
+ggplot(small_df, aes(x=head_of_household_age)) + geom_histogram(bins=30) + labs(title='Histogram of the Head of Household Age', x='Head of Household Age')
+```
+
+Huh, well, the first thing that I notice is that there are negative numbers for the Age of the Head of Household, and that there are a lot of them. Looking at the Data Dictionary for this dataset, the data is the result of combining two different datasets looking at different timeframes. The `-9` value in the Age is equivalent to missing data for this field when the two datasets were merged. To deal with the 'missing' data, there are a couple of different things I can do, but I'm going to remove the data from the Data Frame.
+
+```{r}
+small_df <- small_df[small_df$head_of_household_age >0,]
+```
+```{r, echo=F}
+ggplot(small_df, aes(x=head_of_household_age)) + geom_histogram(bins=30) + labs(title='Histogram of the Head of Household Age', x='Head of Household Age')
+```
+
+Ok, let's look at the next variable, `num_bedrooms`.
+
+```{r, echo=F}
+ggplot(small_df, aes(x=num_bedrooms)) + geom_histogram(bins=30) + labs(title='Histogram of the Number of Bedrooms', x='Number of Bedrooms')
+```
+
+Looks good and looks like 3 bedrooms is the mode. This distribution looks pretty normal.
+
+```{r, echo=F}
+ggplot(small_df, aes(x=year_built)) + geom_histogram(bins=30) + labs(title='Histogram of the Year Built', x='Year Built')
+```
+
+The `year_built` is pretty spread out, but that makes sense as housing is always being built.
+
+```{r, echo=F}
+ggplot(small_df, aes(x=fair_market_rent)) + geom_histogram(bins=30) + labs(title='Histogram of the Fair Market Rent Price', x='Fair Market Rent Price')
+
+ggplot(small_df, aes(x=growth_adj_median_income)) + geom_histogram(bins=30) + labs(title='Histogram of the Adjusted Growth for Median Income', x='Adjusted Growth for Median Income')
+
+ggplot(small_df, aes(x=poverty_incom)) + geom_histogram(bins=30) + labs(title='Histogram of Poverty Income Levels', x='Poverty Income Level')
+
+ggplot(small_df, aes(x=num_units)) + geom_histogram(bins=20) + labs(title='Histogram of the Number of Units', x='Number of Units')
+
+ggplot(small_df, aes(x=other_costs)) + geom_histogram(bins=30) + labs(title='Histogram of Other Cost Amounts', x='Other Cost Amounts')
+
+ggplot(small_df, aes(x=num_residents)) + geom_histogram(bins=30) + labs(title='Histogram of the Number of Residents', x='Number of Residents')
+
+ggplot(small_df, aes(x=num_rooms)) + geom_histogram(bins=30) + labs(title='Histogram of the Number of Rooms', x='Number of Rooms')
+
+ggplot(small_df, aes(x=owner_status)) + geom_histogram(bins=30) + labs(title='Histogram of the Owner Status', x='Owner Stats')
+
+ggplot(small_df, aes(total_wage_income)) + geom_histogram(bins=30) + labs(title='Histogram of the Total Wage Income', x='Total Wage Income')
+
+ggplot(small_df, aes(monthly_utility_costs)) + geom_histogram(bins=30) + labs(title='Histogram of the Monthy Utility Costs', x='Monthly Utility Costs')
+
+ggplot(small_df, aes(market_value)) + geom_histogram(bins=30) + labs(title='Histogram of the Market Value', x='Market Value')
+
+ggplot(small_df, aes(household_income)) + geom_histogram(bins=30) + labs(title='Histogram of the Household Income', x='Household Income')
+
+ggplot(small_df, aes(monthly_housing_costs)) + geom_histogram(bins=30) + labs(title='Histogram of the Monthly Housing Costs', x='Monthly Housing Costs')
+```
+
+Now that we have the histograms, let's look at the boxplots.
+
+```{r, echo=F}
+boxplot(small_df$head_of_household_age, main='Boxplot of the Head of Household Age', ylab='Age')
+boxplot(small_df$num_bedrooms, main='Boxplot of the Number of Bedrooms', ylab='Number of Bedrooms')
+boxplot(small_df$year_built, main='Boxplot of the Year Built', ylab='Year')
+boxplot(small_df$housing_burden, main='Boxplot of the Housing Burden', ylab='Burden')
+boxplot(small_df$fair_market_rent, main='Boxplot of the Fair Market Rent Price', ylab='Price')
+boxplot(small_df$growth_adj_median_income, main='Boxplot of the Adjusted Growth Median Income', ylab='Adjusted Income')
+boxplot(small_df$poverty_incom, main='Boxplot of the Poverty Income Level', ylab='Poverty Level')
+boxplot(small_df$num_units, main='Boxplot of the Number of Units', ylab='Units')
+boxplot(small_df$other_costs, main='Boxplot of Other Costs', ylab='Other Costs')
+boxplot(small_df$num_residents, main='Boxplot of the Number of Residents', ylab='Residents')
+boxplot(small_df$num_rooms, main='Boxplot of the Number of Rooms', ylab='Rooms')
+boxplot(small_df$total_wage_income, main='Boxplot of the Total Wage Income', ylab='Wage')
+boxplot(small_df$monthly_utility_costs, main='Boxplot of Monthly Utility Costs', ylab='Costs')
+boxplot(small_df$market_value, main='Boxplot of the Market Value', ylab='Value')
+boxplot(small_df$household_income, main='Boxplot of Household Income', ylab='Income')
+boxplot(small_df$monthly_housing_costs, main='Boxplot of Monthly Housing Costs', ylab='Costs')
+```
+
+Looking at the different boxplots, there are a lot of outliers. However, I am going to be keeping the outliers in the dataset for now.
+
+Now that we've looked at the Histograms and the Boxplots, let's take a look at some of the bivariate relationships between the variables.
+
+```{r, echo=F}
+ggplot(small_df, aes(x=head_of_household_age, y=num_bedrooms)) + geom_point(aes(alpha=.1)) + geom_jitter() + labs(title='Scatterplot of Household Age vs Number of Bedrooms', x='Head of Household Age', y='Number of Bedrooms')
+cor.test(small_df$head_of_household_age, small_df$num_bedrooms)
+```
+
+Looks like there is a weak negative correlation between these two variables. The correlation is not significant, either.
+
+```{r, echo=F}
+ggplot(small_df, aes(x=housing_burden, y=year_built)) + geom_point(aes(alpha=.1)) + geom_jitter() + labs(title='Scatterplot of Housing Burden vs Year Built', x='Housing Burden', y='Year Built')
+cor.test(small_df$housing_burden, small_df$year_built)
+```
+
+Looks like the year the house was built is not correlated with the housing burden very strongly. There is a weak positive correlation between the two variables, but is not significant. Rather than looking at each correlation individually, let's take a look at a correlation matrix graph.
+
+```{r, echo=F, warning=F}
+library(corrplot)
+M <- cor(small_df)
+corrplot(M, method='circle')
+```
+
+This is a good way to view the different correlations, but it doesn't tell us which is significant, but is good enough for now.
+
+I do need to tie Python into this project, so I'm now going to save the data file into a .csv file.
+
+```{r}
+write.csv(small_df, file='C:/Users/yasam/OneDrive/Documents/Grad School/DSC630 Predictive Analytics/Final Project/hads2013n_ASCII/housing.csv', row.names=F)
+```
+
+Let's look at a couple more of the multi-variate relationships, specifically the ones surrounding the `market_value` variable.
+
+Let's take a look at the different scatterplots and correlations related to those scatterplots.
+
+```{r}
+ggplot(small_df, aes(x=market_value, y =num_bedrooms)) + geom_point(aes(alpha=.05)) + labs(title="Marker Value vs. Num Bedrooms", x="Market Value", y='Bedrooms') + geom_jitter()
+cor.test(small_df$market_value, small_df$num_bedrooms)
+
+ggplot(small_df, aes(x=market_value, y=fair_market_rent)) + geom_point(aes(alpha=.05)) + labs(title='Market Value vs Fair Market Rent', x='Market Value', y='Fair Market Rent')
+cor.test(small_df$market_value, small_df$fair_market_rent)
+
+ggplot(small_df, aes(x=market_value, y=other_costs)) + geom_point(aes(alpha=.05)) + labs(title='Market Value vs Other Costs', x='Market Value', y='Other Costs')
+cor.test(small_df$market_value, small_df$other_costs)
+
+ggplot(small_df, aes(x=market_value, y=total_wage_income)) + geom_point(aes(alpha=.05)) + labs(title='Market Value vs Total Wage Income', x='Market Value', y='Total Wage Income')
+cor.test(small_df$market_value, small_df$total_wage_income)
+
+ggplot(small_df, aes(x=market_value, y=monthly_utility_costs)) + geom_point(aes(alpha=.05)) + labs(title='Market Value vs Monthly Utility Costs', x='Market Value', y='Monthly Utility Costs')
+cor.test(small_df$market_value, small_df$monthly_utility_costs)
+
+ggplot(small_df, aes(x=market_value, y=household_income)) + geom_point(aes(alpha=.05)) + labs(title='Market Value vs Household Income', x='Market Value', y='Household Income')
+cor.test(small_df$market_value, small_df$household_income)
+
+ggplot(small_df, aes(x=market_value, y=monthly_housing_costs)) + geom_point(aes(alpha=.05)) + labs(title='Market Value vs Monthly Housing Costs', x='Market Value', y='Monthly Housing Costs')
+cor.test(small_df$market_value, small_df$monthly_housing_costs)
+
+ggplot(small_df, aes(x=market_value, y=owner_status)) + geom_point(aes(alpha=.05)) + labs(title='Market Value vs Owner Status', x='Market Value', y='Owner Status, 1="Owner", 2="Renter"') + geom_jitter()
+cor.test(small_df$market_value, small_df$owner_status)
+```
